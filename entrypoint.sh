@@ -2,6 +2,9 @@
 
 umask ${UMASK}
 
+FORWARD_LISTEN_PORT="${FORWARD_LISTEN_PORT:-5000}"
+FORWARD_TARGET_PORT="${FORWARD_TARGET_PORT:-5244}"
+
 if [ "$1" = "version" ]; then
   ./openlist version
 else
@@ -9,7 +12,7 @@ else
   # 检查当前用户是否有当前目录的写和执行权限
   if [ -d ./data ]; then
     if ! [ -w ./data ] || ! [ -x ./data ]; then
-  cat <<EOF
+      cat <<EOF
 Error: Current user does not have write and/or execute permissions for the ./data directory: $(pwd)/data
 Please visit https://doc.oplist.org/guide/installation/docker#for-version-after-v4-1-0 for more information.
 错误：当前用户没有 ./data 目录（$(pwd)/data）的写和/或执行权限。
@@ -35,5 +38,11 @@ EOF
       rm -rf "$ARIA2_DIR"
     fi
   fi
+
+  # 5000 -> 5244 转发
+  if command -v socat >/dev/null 2>&1; then
+    socat TCP-LISTEN:${FORWARD_LISTEN_PORT},fork,reuseaddr TCP:127.0.0.1:${FORWARD_TARGET_PORT} &
+  fi
+
   exec ./openlist server --no-prefix
 fi
