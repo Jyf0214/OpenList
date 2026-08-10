@@ -1,4 +1,3 @@
-### Default image is base. You can add other support by modifying BASE_IMAGE_TAG. The following parameters are supported: base (default), aria2, ffmpeg, aio
 ARG BASE_IMAGE_TAG=aio
 
 FROM alpine:edge AS builder
@@ -29,13 +28,12 @@ RUN addgroup -g ${GID} ${USER} && \
 COPY --from=builder --chmod=755 --chown=${UID}:${GID} /app/bin/openlist ./
 COPY --chmod=755 --chown=${UID}:${GID} entrypoint.sh /entrypoint.sh
 
-USER root 
+USER root
 RUN mkdir -p /opt/openlist/data && chmod -R 0777 /opt/openlist/data
-
-USER ${USER}
-RUN /entrypoint.sh version
 
 ENV UMASK=022 RUN_ARIA2=${INSTALL_ARIA2}
 
 EXPOSE 5000 5244 5245
-CMD [ "/entrypoint.sh" ]
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD []
